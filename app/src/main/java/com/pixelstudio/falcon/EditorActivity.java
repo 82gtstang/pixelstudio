@@ -13,7 +13,7 @@ import android.widget.*;
 import android.graphics.drawable.GradientDrawable;
 
 public class EditorActivity extends Activity {
-    private static final int CELLS=60;
+    private static final int CELLS=300;
     private final int[] pattern=new int[CELLS];
     private int background=Color.BLACK, fill=Color.RED, brightness=80, direction=0;
     private boolean eraser=false;
@@ -58,7 +58,7 @@ public class EditorActivity extends Activity {
         Button paint=button(tools,"✎ Paint",()->{eraser=false;info.setText("Paint mode: drag your finger across the strip");});
         Button erase=button(tools,"⌫ Erase",()->{eraser=true;info.setText("Erase mode: drag to restore the background");});
         paint.setLayoutParams(new LinearLayout.LayoutParams(0,dp(52),1));erase.setLayoutParams(new LinearLayout.LayoutParams(0,dp(52),1));
-        label(root,"Finger sketch preview — 60 editable cells",17);
+        label(root,"Finger sketch preview — 300 editable cells",17);
         preview=new Preview();root.addView(preview,new LinearLayout.LayoutParams(-1,dp(190)));
         info=label(root,"Drag across the strip to draw your pattern",13);
         label(root,"Brightness",17);
@@ -74,7 +74,7 @@ public class EditorActivity extends Activity {
         button(root,"Fill entire strip with selected color",()->{for(int i=0;i<CELLS;i++)pattern[i]=fill;preview.invalidate();});
         button(root,"Clear to background",()->{for(int i=0;i<CELLS;i++)pattern[i]=background;preview.invalidate();});
         Button save=button(root,"✓ SAVE & USE IN PIXEL STUDIO",()->save());save.setBackgroundTintList(android.content.res.ColorStateList.valueOf(0xff6955e8));
-        label(root,"Your 60-cell design repeats across the pixel count selected on the main screen.",12);
+        label(root,"Your 300-cell design repeats across the pixel count selected on the main screen.",12);
     }
     private void save(){
         StringBuilder s=new StringBuilder();for(int i=0;i<CELLS;i++){if(i>0)s.append(',');s.append(pattern[i]&0xffffffffL);}
@@ -95,7 +95,7 @@ public class EditorActivity extends Activity {
             }
             paint.setColor(Color.WHITE);paint.setTextSize(dp(13));
             c.drawText("PIXEL STRIP • TOUCH TO PAINT",pad,dp(18),paint);
-            c.drawText("1",pad,top+h+dp(20),paint);c.drawText("60",getWidth()-dp(28),top+h+dp(20),paint);
+            c.drawText("1",pad,top+h+dp(20),paint);c.drawText("300",getWidth()-dp(40),top+h+dp(20),paint);
         }
         @Override public boolean onTouchEvent(MotionEvent e){
             if(e.getAction()==MotionEvent.ACTION_DOWN||e.getAction()==MotionEvent.ACTION_MOVE){
