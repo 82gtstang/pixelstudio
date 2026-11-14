@@ -42,7 +42,7 @@ public class MainActivity extends Activity {
         section(root,"DIY FINGER SKETCH");
         Button edit=button(root,"✎ OPEN VISUAL PIXEL EDITOR",0xff6955e8);
         edit.setOnClickListener(v->startActivity(new Intent(this,EditorActivity.class)));
-        label(root,"Draw colors on a 60-cell strip, save your design, then stream it as a repeating pattern.");
+        label(root,"Draw colors on a 300-cell strip, save your design, then stream it as a repeating pattern.");
         section(root,"DYNAMIC SCENES");String[] effects={"Solid","Rainbow","Chase","Meteor","Sparkle","Fire","Color Wipe","Twinkle","Breathing","DIY Editor"};
         effect=new Spinner(this);ArrayAdapter<String> adapter=new ArrayAdapter<>(this,android.R.layout.simple_spinner_dropdown_item,effects);effect.setAdapter(adapter);root.addView(effect);
         label(root,"ONE-TAP SCENES");
@@ -71,12 +71,12 @@ public class MainActivity extends Activity {
     private void stop(){running.set(false);if(socket!=null&&destination!=null){byte[] black=new byte[pixels*3];try{sendPixels(black);}catch(Exception ignored){}}status.setText("Stopped; blackout sent once");}
     private void sendFrame(){try{int n=pixels;byte[] rgb=new byte[n*3];int h=hueValue,br=level;String m=mode;int f=frame++;
         int[] diy=null;int diyDir=0;
-        if("DIY Editor".equals(m)){SharedPreferences pref=getSharedPreferences("pixel_diy",MODE_PRIVATE);String[] parts=pref.getString("pattern","").split(",");if(parts.length==60){diy=new int[60];for(int z=0;z<60;z++){try{diy[z]=(int)Long.parseLong(parts[z]);}catch(Exception ignored){diy[z]=Color.BLACK;}}diyDir=pref.getInt("direction",0);br=pref.getInt("brightness",br);}}
+        if("DIY Editor".equals(m)){SharedPreferences pref=getSharedPreferences("pixel_diy",MODE_PRIVATE);String[] parts=pref.getString("pattern","").split(",");if(parts.length==300){diy=new int[300];for(int z=0;z<300;z++){try{diy[z]=(int)Long.parseLong(parts[z]);}catch(Exception ignored){diy[z]=Color.BLACK;}}diyDir=pref.getInt("direction",0);br=pref.getInt("brightness",br);}}
         final int[] diyColors=diy;final int diyDirection=diyDir;
         for(int i=0;i<n;i++){int r=0,g=0,b=0;float hh=h/360f;float value=br/100f;
             switch(m){case "DIY Editor":{
-                if(diyColors!=null){int idx=i%60;int shift=(f*(speedValue/20+1))%60;
-                    if(diyDirection==0)idx=(idx+shift)%60;else if(diyDirection==1)idx=(idx-shift+60)%60;
+                if(diyColors!=null){int idx=i%300;int shift=(f*(speedValue/20+1))%300;
+                    if(diyDirection==0)idx=(idx+shift)%300;else if(diyDirection==1)idx=(idx-shift+300)%300;
                     int color=diyColors[idx];int j=i*3;float scale=br/100f;
                     rgb[j]=(byte)(Color.red(color)*scale);rgb[j+1]=(byte)(Color.green(color)*scale);rgb[j+2]=(byte)(Color.blue(color)*scale);continue;
                 }break;}
