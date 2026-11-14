@@ -70,16 +70,15 @@ public class MainActivity extends Activity {
         }catch(Exception ex){status.setText("Setup error: "+ex.getMessage());}}
     private void stop(){running.set(false);if(socket!=null&&destination!=null){byte[] black=new byte[pixels*3];try{sendPixels(black);}catch(Exception ignored){}}status.setText("Stopped; blackout sent once");}
     private void sendFrame(){try{int n=pixels;byte[] rgb=new byte[n*3];int h=hueValue,br=level;String m=mode;int f=frame++;
+        int[] diy=null;int diyDir=0;
+        if("DIY Editor".equals(m)){SharedPreferences pref=getSharedPreferences("pixel_diy",MODE_PRIVATE);String[] parts=pref.getString("pattern","").split(",");if(parts.length==60){diy=new int[60];for(int z=0;z<60;z++){try{diy[z]=(int)Long.parseLong(parts[z]);}catch(Exception ignored){diy[z]=Color.BLACK;}}diyDir=pref.getInt("direction",0);br=pref.getInt("brightness",br);}}
+        final int[] diyColors=diy;final int diyDirection=diyDir;
         for(int i=0;i<n;i++){int r=0,g=0,b=0;float hh=h/360f;float value=br/100f;
             switch(m){case "DIY Editor":{
-                SharedPreferences prefs=getSharedPreferences("pixel_diy",MODE_PRIVATE);
-                String[] values=prefs.getString("pattern","").split(",");
-                if(values.length==60){int dir=prefs.getInt("direction",0);int idx=i%60;
-                    int shift=(f*(speedValue/20+1))%60;
-                    if(dir==0)idx=(idx+shift)%60;else if(dir==1)idx=(idx-shift+60)%60;
-                    try{int color=(int)Long.parseLong(values[idx]);int j=i*3;float scale=br/100f;
-                        rgb[j]=(byte)(Color.red(color)*scale);rgb[j+1]=(byte)(Color.green(color)*scale);rgb[j+2]=(byte)(Color.blue(color)*scale);continue;
-                    }catch(Exception ignored){}
+                if(diyColors!=null){int idx=i%60;int shift=(f*(speedValue/20+1))%60;
+                    if(diyDirection==0)idx=(idx+shift)%60;else if(diyDirection==1)idx=(idx-shift+60)%60;
+                    int color=diyColors[idx];int j=i*3;float scale=br/100f;
+                    rgb[j]=(byte)(Color.red(color)*scale);rgb[j+1]=(byte)(Color.green(color)*scale);rgb[j+2]=(byte)(Color.blue(color)*scale);continue;
                 }break;}
             case "Rainbow":hh=((h+i*2+f*3)%360)/360f;break;
             case "Chase":value=((i+f*(speedValue/10+1))%18<6)?value:0;break;
