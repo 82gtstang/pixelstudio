@@ -21,4 +21,4 @@ Android Studio Java/Gradle project. Open the **PixelStudio_Falcon_v1** directory
 ## GitHub Actions APK build
 Push this project's **contents** (including `.github/workflows/android.yml`) to the root of `main` on `82gtstang/pixelstudio`. Under Actions, select **Build Android APK** and **Run workflow** (or push to main). Download the `pixel-studio-debug-apk` artifact from the completed run. This build has not been verified yet.
 
-Default controller IP: `192.168.1.231`. DDP UDP 4048. Confirm the Falcon's DDP channel mapping and avoid concurrent xLights playback during testing.
+Enter your controller's local IP address in the app. DDP uses UDP port 4048. Confirm the Falcon's DDP channel mapping and avoid concurrent xLights playback during testing.
