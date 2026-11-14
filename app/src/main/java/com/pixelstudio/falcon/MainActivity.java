@@ -13,7 +13,7 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class MainActivity extends Activity {
-    private final int BG=0xff10121d, PANEL=0xff202437, TEXT=0xfff7f7ff, ACCENT=0xff8e6cff;
+    private final int BG=0xff0b1020, PANEL=0xff1c2440, TEXT=0xfff7f7ff, ACCENT=0xff7968ff;
     private EditText ip, count, offset; private TextView status, swatch;
     private SeekBar hue, brightness, speed; private Spinner effect;
     private final AtomicBoolean running=new AtomicBoolean(false);
@@ -23,24 +23,34 @@ public class MainActivity extends Activity {
     private volatile String mode="Solid";
     @Override public void onCreate(Bundle b){super.onCreate(b); getWindow().setStatusBarColor(BG);getWindow().setNavigationBarColor(BG);
         ScrollView scroll=new ScrollView(this);scroll.setFillViewport(true);scroll.setBackgroundColor(BG);
-        LinearLayout root=new LinearLayout(this);root.setOrientation(1);root.setPadding(26,28,26,28);scroll.addView(root);setContentView(scroll);
-        title(root,"PIXEL STUDIO",28); label(root,"Falcon F16V5  •  Local DDP control");
-        title(root,"Controller",20); ip=field(root,"Falcon IP address","192.168.1.231",false);
+        LinearLayout root=new LinearLayout(this);root.setOrientation(1);root.setPadding(24,22,24,32);scroll.addView(root);setContentView(scroll);
+        title(root,"✦  PIXEL STUDIO",28); label(root,"SMART PIXEL LIGHTING   •   FALCON F16V5");
+        label(root,"Make every pixel shine.  Local Wi-Fi • No cloud.");
+        section(root,"CONTROLLER"); ip=field(root,"Falcon IP address","192.168.1.231",false);
         count=field(root,"Pixel count (1–20000)","300",true);offset=field(root,"DDP start channel (zero-based)","0",true);
         label(root,"Match these settings to your Falcon's DDP input mapping. A wrong offset may illuminate a different prop.");
         Button connect=button(root,"CONNECT / START",ACCENT); status=label(root,"Not connected");
-        title(root,"Color & brightness",20);swatch=label(root,"      LIVE COLOR PREVIEW      "); swatch.setPadding(20,24,20,24);
+        section(root,"COLOR STUDIO");swatch=label(root,"       LIVE COLOR PREVIEW"); swatch.setTextColor(Color.BLACK);swatch.setPadding(20,30,20,30);
+        label(root,"QUICK COLORS");
+        LinearLayout palette=new LinearLayout(this);palette.setOrientation(LinearLayout.HORIZONTAL);root.addView(palette);
+        int[] colors={0xffff3b59,0xffffa326,0xffffe55c,0xff22d37f,0xff27c5ff,0xff8657ff};
+        for(int color:colors){TextView dot=new TextView(this);dot.setText("●");dot.setTextSize(30);dot.setTextColor(color);dot.setGravity(17);palette.addView(dot,new LinearLayout.LayoutParams(0,60,1));dot.setOnClickListener(v->{float[] hsv=new float[3];Color.colorToHSV(color,hsv);hue.setProgress((int)hsv[0]);});}
         hue=slider(root,"Hue",0,360,0,v->{hueValue=v;refreshSwatch();});
         brightness=slider(root,"Brightness",0,100,80,v->level=v);
-        title(root,"Effects",20);String[] effects={"Solid","Rainbow","Chase","Meteor","Sparkle","Fire","Color Wipe","Twinkle","Breathing"};
+        section(root,"DYNAMIC SCENES");String[] effects={"Solid","Rainbow","Chase","Meteor","Sparkle","Fire","Color Wipe","Twinkle","Breathing"};
         effect=new Spinner(this);ArrayAdapter<String> adapter=new ArrayAdapter<>(this,android.R.layout.simple_spinner_dropdown_item,effects);effect.setAdapter(adapter);root.addView(effect);
+        label(root,"ONE-TAP SCENES");
+        String[] sceneNames={"🌈 Rainbow","🔥 Fire","✨ Sparkle","☄ Meteor","🌊 Chase","💜 Breathe","🎨 Wipe","⭐ Twinkle"};
+        int[] sceneIndices={1,5,4,3,2,8,6,7};
+        for(int row=0;row<2;row++){LinearLayout line=new LinearLayout(this);root.addView(line);for(int col=0;col<4;col++){int idx=row*4+col;Button tile=new Button(this);tile.setText(sceneNames[idx]);tile.setTextSize(11);tile.setAllCaps(false);tile.setTextColor(TEXT);tile.setBackgroundTintList(android.content.res.ColorStateList.valueOf(idx%2==0?0xff30345d:0xff283b55));LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(0,74,1);lp.setMargins(2,4,2,4);line.addView(tile,lp);tile.setOnClickListener(v->effect.setSelection(sceneIndices[idx]));}}
         effect.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener(){public void onNothingSelected(android.widget.AdapterView<?> p){} public void onItemSelected(android.widget.AdapterView<?> p,View v,int pos,long id){mode=effects[pos];}});
         speed=slider(root,"Effect speed",1,100,50,v->speedValue=v);
         Button stop=button(root,"STOP / BLACKOUT",0xffcf405f);
         connect.setOnClickListener(v->start());stop.setOnClickListener(v->stop());refreshSwatch();
-        label(root,"v1.0 • Uses DDP UDP port 4048 • No cloud account required");
+        label(root,"PIXEL STUDIO v2.0  •  DDP / UDP 4048  •  PRIVATE LOCAL CONTROL");
         timer.scheduleAtFixedRate(()->{if(running.get())sendFrame();},0,40,TimeUnit.MILLISECONDS);
     }
+    private void section(LinearLayout root,String name){TextView h=label(root,name);h.setTextSize(18);h.setTextColor(0xffa99bff);h.setTypeface(null,Typeface.BOLD);h.setPadding(0,32,0,12);}
     private void start(){try{
         String host=ip.getText().toString().trim(); if(host.isEmpty())throw new Exception("Enter Falcon IP");
         int n=Integer.parseInt(count.getText().toString().trim()),off=Integer.parseInt(offset.getText().toString().trim());
@@ -71,7 +81,7 @@ public class MainActivity extends Activity {
             packet[8]=(byte)(len>>>8);packet[9]=(byte)len;System.arraycopy(rgb,pos,packet,10,len);
             socket.send(new DatagramPacket(packet,packet.length,destination,4048));
         }}
-    private void refreshSwatch(){if(swatch!=null)swatch.setBackgroundColor(Color.HSVToColor(new float[]{hueValue,1,1}));}
+    private void refreshSwatch(){if(swatch!=null){GradientDrawable g=new GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,new int[]{Color.HSVToColor(new float[]{hueValue,1,1}),0xff283454});g.setCornerRadius(26);swatch.setBackground(g);}}
     private TextView label(LinearLayout root,String s){TextView t=new TextView(this);t.setText(s);t.setTextColor(TEXT);t.setTextSize(14);t.setPadding(0,9,0,12);root.addView(t);return t;}
     private void title(LinearLayout root,String s,int size){TextView t=label(root,s);t.setTextSize(size);t.setTypeface(null,Typeface.BOLD);t.setPadding(0,22,0,12);}
     private EditText field(LinearLayout root,String hint,String initial,boolean numeric){label(root,hint);EditText e=new EditText(this);e.setSingleLine(true);e.setText(initial);e.setTextColor(TEXT);e.setHintTextColor(0xff9999aa);e.setBackgroundTintList(android.content.res.ColorStateList.valueOf(ACCENT));if(numeric)e.setInputType(InputType.TYPE_CLASS_NUMBER);root.addView(e);return e;}
