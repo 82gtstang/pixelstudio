@@ -2,6 +2,8 @@ package com.pixelstudio.falcon;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
@@ -37,7 +39,11 @@ public class MainActivity extends Activity {
         for(int color:colors){TextView dot=new TextView(this);dot.setText("●");dot.setTextSize(30);dot.setTextColor(color);dot.setGravity(17);palette.addView(dot,new LinearLayout.LayoutParams(0,60,1));dot.setOnClickListener(v->{float[] hsv=new float[3];Color.colorToHSV(color,hsv);hue.setProgress((int)hsv[0]);});}
         hue=slider(root,"Hue",0,360,0,v->{hueValue=v;refreshSwatch();});
         brightness=slider(root,"Brightness",0,100,80,v->level=v);
-        section(root,"DYNAMIC SCENES");String[] effects={"Solid","Rainbow","Chase","Meteor","Sparkle","Fire","Color Wipe","Twinkle","Breathing"};
+        section(root,"DIY FINGER SKETCH");
+        Button edit=button(root,"✎ OPEN VISUAL PIXEL EDITOR",0xff6955e8);
+        edit.setOnClickListener(v->startActivity(new Intent(this,EditorActivity.class)));
+        label(root,"Draw colors on a 60-cell strip, save your design, then stream it as a repeating pattern.");
+        section(root,"DYNAMIC SCENES");String[] effects={"Solid","Rainbow","Chase","Meteor","Sparkle","Fire","Color Wipe","Twinkle","Breathing","DIY Editor"};
         effect=new Spinner(this);ArrayAdapter<String> adapter=new ArrayAdapter<>(this,android.R.layout.simple_spinner_dropdown_item,effects);effect.setAdapter(adapter);root.addView(effect);
         label(root,"ONE-TAP SCENES");
         String[] sceneNames={"🌈 Rainbow","🔥 Fire","✨ Sparkle","☄ Meteor","🌊 Chase","💜 Breathe","🎨 Wipe","⭐ Twinkle"};
@@ -51,6 +57,9 @@ public class MainActivity extends Activity {
         timer.scheduleAtFixedRate(()->{if(running.get())sendFrame();},0,40,TimeUnit.MILLISECONDS);
     }
     private void section(LinearLayout root,String name){TextView h=label(root,name);h.setTextSize(18);h.setTextColor(0xffa99bff);h.setTypeface(null,Typeface.BOLD);h.setPadding(0,32,0,12);}
+    @Override protected void onResume(){super.onResume();
+        if(getSharedPreferences("pixel_diy",MODE_PRIVATE).contains("pattern") && effect!=null){effect.setSelection(9);mode="DIY Editor";}
+    }
     private void start(){try{
         String host=ip.getText().toString().trim(); if(host.isEmpty())throw new Exception("Enter Falcon IP");
         int n=Integer.parseInt(count.getText().toString().trim()),off=Integer.parseInt(offset.getText().toString().trim());
@@ -62,7 +71,17 @@ public class MainActivity extends Activity {
     private void stop(){running.set(false);if(socket!=null&&destination!=null){byte[] black=new byte[pixels*3];try{sendPixels(black);}catch(Exception ignored){}}status.setText("Stopped; blackout sent once");}
     private void sendFrame(){try{int n=pixels;byte[] rgb=new byte[n*3];int h=hueValue,br=level;String m=mode;int f=frame++;
         for(int i=0;i<n;i++){int r=0,g=0,b=0;float hh=h/360f;float value=br/100f;
-            switch(m){case "Rainbow":hh=((h+i*2+f*3)%360)/360f;break;
+            switch(m){case "DIY Editor":{
+                SharedPreferences prefs=getSharedPreferences("pixel_diy",MODE_PRIVATE);
+                String[] values=prefs.getString("pattern","").split(",");
+                if(values.length==60){int dir=prefs.getInt("direction",0);int idx=i%60;
+                    int shift=(f*(speedValue/20+1))%60;
+                    if(dir==0)idx=(idx+shift)%60;else if(dir==1)idx=(idx-shift+60)%60;
+                    try{int color=(int)Long.parseLong(values[idx]);int j=i*3;float scale=br/100f;
+                        rgb[j]=(byte)(Color.red(color)*scale);rgb[j+1]=(byte)(Color.green(color)*scale);rgb[j+2]=(byte)(Color.blue(color)*scale);continue;
+                    }catch(Exception ignored){}
+                }break;}
+            case "Rainbow":hh=((h+i*2+f*3)%360)/360f;break;
             case "Chase":value=((i+f*(speedValue/10+1))%18<6)?value:0;break;
             case "Meteor":{int pos=(f*(speedValue/15+1))%(n+25);int dist=pos-i;value=dist>=0&&dist<25?value*(1-dist/25f):0;break;}
             case "Sparkle":value=(((i*73+f*101)^((i+f)*17))&31)<3?value:0;break;
